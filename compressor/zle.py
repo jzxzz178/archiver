@@ -1,7 +1,6 @@
 ZLE_MARKER = 256
 
 def zle_encode(data: list[int]) -> list[int]:
-    """Заменяет серии нулей на маркер и длину"""
     output = []
     i = 0
     while i < len(data):
@@ -18,7 +17,6 @@ def zle_encode(data: list[int]) -> list[int]:
 
 
 def zle_decode(data: list[int]) -> list[int]:
-    """Восстанавливает нули по маркеру и длине"""
     output = []
     i = 0
     while i < len(data):

@@ -1,6 +1,4 @@
 def bwt_encode(text: str) -> tuple[str, int]:
-    """Преобразует строку text с помощью BWT и возвращает
-    (BWT-строку, индекс исходной строки в отсортированной матрице)"""
     text += '\0'
     rotations = [text[i:] + text[:i] for i in range(len(text))]
     rotations_sorted = sorted(rotations)
@@ -10,7 +8,6 @@ def bwt_encode(text: str) -> tuple[str, int]:
 
 
 def bwt_decode(bwt: str, index: int) -> str:
-    """Восстанавливает строку из BWT и индекса"""
     n = len(bwt)
     table = [''] * n
     for _ in range(n):
