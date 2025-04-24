@@ -24,7 +24,8 @@ def compress_file(input_path: str, output_path: str):
         blocks.append({
             "code": code,
             "length": len(zle_out),
-            "bwt_index": bwt_index
+            "bwt_index": bwt_index,
+            "freq": dict(coder.freq)
         })
 
     result = {
@@ -50,11 +51,14 @@ def decompress_file(input_path: str, output_path: str):
         code = block["code"]
         length = block["length"]
         bwt_index = block["bwt_index"]
+        freq = {int(k): v for k, v in block["freq"].items()}
+
         coder = ArithmeticCoder([])
-        coder.freq = {i: 1 for i in range(marker + 1)}
-        coder.total = sum(coder.freq.values())
-        coder.symbols = sorted(coder.freq.keys())
+        coder.freq = freq
+        coder.total = sum(freq.values())
+        coder.symbols = sorted(freq.keys())
         coder.cumulative = coder._build_cumulative()
+
         zle_out = coder.decode(code, length)
         mtf_decoded = mtf_decode(zle_decode(zle_out, marker=marker), alphabet)
         text_out.append(bwt_decode(mtf_decoded, bwt_index))
