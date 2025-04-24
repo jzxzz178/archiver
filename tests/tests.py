@@ -68,3 +68,10 @@ def test_ari_large_data():
     decode = arithmetic_decode(code, len(data))
     assert decode == data, f"ARI large data fail: {decode} != {data}"
     print("\033[32mARI large data test passed.\033[0m")
+
+def test_ari_single_symbol():
+    data = [1, 1, 1, 1, 1]
+    encoded = arithmetic_encode(data)
+    decoded = arithmetic_decode(encoded, len(data))
+    assert decoded == data, f"ARI single symbol fail: {decoded} != {data}"
+    print("\033[32mARI single symbol test passed.\033[0m")
