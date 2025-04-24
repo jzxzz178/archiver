@@ -12,9 +12,11 @@ def arithmetic_encode(data: List[int], max_symbol: int) -> bytes:
     for x in data:
         freq[x] += 1
     total = len(data)
+
     # Если нет данных, возвращаем пустой результат
     if total == 0:
         return bytes()
+
     # Кумулятивные частоты (cdf[i] = сумма freq[0..i-1])
     cdf = [0] * (len(freq) + 1)
     for i in range(len(freq)):
@@ -97,18 +99,17 @@ def arithmetic_encode(data: List[int], max_symbol: int) -> bytes:
             byte = 0
     return bytes(out)
 
-def arithmetic_decode(encoded: bytes, length: int) -> List[int]:
+def arithmetic_decode(encoded: bytes, length: int, max_symbol: int) -> List[int]:
     """
     Декодирование байтового представления, возвращает исходный список int той же длины.
     Предполагается, что в encoded сохранены частоты (статическая модель) и закодированные биты.
     """
     if length == 0:
         return []
-    MAX_SYMBOL = 78
     offset = 0
     # Читаем частоты (модель)
     freq = []
-    for _ in range(MAX_SYMBOL + 1):
+    for _ in range(max_symbol + 1):
         freq.append(int.from_bytes(encoded[offset:offset+4], 'big'))
         offset += 4
     total = sum(freq)

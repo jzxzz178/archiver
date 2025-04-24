@@ -46,7 +46,7 @@ def compress_file(input_path: str, output_path: str):
 def decompress_file(input_path: str, output_path: str):
     archive = json.loads(Path(input_path).read_text(encoding="utf-8"))
     alphabet = [chr(c) for c in archive["alphabet"]]
-    marker = archive["marker"]
+    zle_marker = archive["marker"]
     text_out = []
 
     for block in archive["blocks"]:
@@ -54,8 +54,8 @@ def decompress_file(input_path: str, output_path: str):
         length = block["length"]
         bwt_index = block["bwt_index"]
 
-        zle_out = arithmetic_decode(code_bytes, length)
-        mtf_decoded = mtf_decode(zle_decode(zle_out, marker=marker), alphabet)
+        zle_out = arithmetic_decode(code_bytes, length, zle_marker)
+        mtf_decoded = mtf_decode(zle_decode(zle_out, marker=zle_marker), alphabet)
         text_out.append(bwt_decode(mtf_decoded, bwt_index))
 
     Path(output_path).write_text("".join(text_out), encoding="utf-8")
