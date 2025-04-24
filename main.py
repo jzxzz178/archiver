@@ -9,21 +9,24 @@ from compressor.mtf import mtf_encode, mtf_decode
 from compressor.zle import zle_encode, zle_decode
 from compressor.ari import arithmetic_encode, arithmetic_decode
 
-# === Конвейер: BWT → MTF → ZLE → ARI ===
 BLOCK_SIZE = 4096
-ALPHABET = list("!#()*,-.0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz \n\0")
-ZLE_MARKER = len(ALPHABET)
+def get_alphabet_from_text(text: str) -> List[str]:
+    unique_chars = sorted(set(text))
+    unique_chars.append('\0')
+    return unique_chars
 
 
 def compress_file(input_path: str, output_path: str):
     text = Path(input_path).read_text(encoding="utf-8")
+    alphabet = get_alphabet_from_text(text)
+    zle_marker = len(alphabet)
     blocks = []
     for i in range(0, len(text), BLOCK_SIZE):
         block = text[i:i + BLOCK_SIZE]
         bwt_out, bwt_index = bwt_encode(block)
-        mtf_out = mtf_encode(bwt_out, ALPHABET)
-        zle_out = zle_encode(mtf_out, marker=ZLE_MARKER)
-        code_bytes = arithmetic_encode(zle_out)
+        mtf_out = mtf_encode(bwt_out, alphabet)
+        zle_out = zle_encode(mtf_out, marker=zle_marker)
+        code_bytes = arithmetic_encode(zle_out, zle_marker)
         code_b64 = base64.b64encode(code_bytes).decode('ascii')
         blocks.append({
             "code": code_b64,
@@ -32,8 +35,8 @@ def compress_file(input_path: str, output_path: str):
         })
 
     result = {
-        "alphabet": [ord(c) for c in ALPHABET],
-        "marker": ZLE_MARKER,
+        "alphabet": [ord(c) for c in alphabet],
+        "marker": zle_marker,
         "blocks": blocks
     }
     Path(output_path).write_text(json.dumps(result), encoding="utf-8")

@@ -1,13 +1,13 @@
 from typing import List
 from fractions import Fraction
 
-def arithmetic_encode(data: List[int]) -> bytes:
+def arithmetic_encode(data: List[int], max_symbol: int) -> bytes:
     """
     Арифметическое кодирование списка целых чисел 0..78.
     Возвращает сжатую последовательность байтов, включающую статическую модель (частоты) и код.
     """
     # Построение статической модели: частоты символов
-    MAX_SYMBOL = 78
+    MAX_SYMBOL = max_symbol
     freq = [0] * (MAX_SYMBOL + 1)
     for x in data:
         freq[x] += 1

@@ -4,21 +4,18 @@
 
 ## Реализованные алгоритмы
 
-### BWT (Burrows-Wheeler Transform)
-- Преобразование Барроуза-Уилера
-- Реализованы функции кодирования и декодирования
-- Использует нулевой символ как терминатор
+* BWT (Burrows-Wheeler Transform)
+* MTF (Move-To-Front)
+* ZLE (Zero Length Encoding)
+* ARI (Arithmetic Coding)
 
-### MTF (Move-To-Front)
-- Алгоритм перемещения в начало
-- Работает с заданным алфавитом
-- Часто используется в комбинации с BWT
-
-Архиватор поддерживает два режима работы: сжатие и распаковка файлов.
+## Использование
 
 #### Сжатие файла:
 ```bash
 python main.py compress input.txt compressed.arch
+# пример
+python main.py compress '.\text_analyzer\Crime and Punishment by Fyodor Dostoyevsky 2.txt' output.json
 ```
 
 #### Распаковка файла:
@@ -26,30 +23,6 @@ python main.py compress input.txt compressed.arch
 python main.py decompress compressed.arch output.txt
 ```
 
-## Использование
-
-### BWT
-```python
-from compressor import bwt_encode, bwt_decode
-
-text = "banana"
-encoded, index = bwt_encode(text)
-decoded = bwt_decode(encoded, index)
-```
-
-### MTF
-```python
-from compressor import mtf_encode, mtf_decode
-alphabet = list("abcde")
-encoded = mtf_encode(text, alphabet)
-decoded = mtf_decode(encoded, alphabet)
-```
-
-### Комбинированное использование
-```python
-bwt_text, idx = bwt_encode(text)
-mtf_encoded = mtf_encode(bwt_text, alphabet)
-```
 
 ## Тестирование
 
