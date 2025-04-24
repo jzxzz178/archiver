@@ -1,10 +1,11 @@
 from compressor import bwt_encode, bwt_decode, mtf_encode, mtf_decode, zle_encode, zle_decode, arithmetic_encode, arithmetic_decode
 
 def test_mtf_identity():
-    alphabet = list("abcde")
-    text = "abcdeabcde"
+    alphabet = list("!#()*,-.0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz \n\0")
+    text = "Hello, World!"
     encoded = mtf_encode(text, alphabet)
     decoded = mtf_decode(encoded, alphabet)
+    # print(f'mtf encoded: {encoded}')
     assert decoded == text, f"MTF fail: {decoded} != {text}"
     print("\033[32mMTF identity test passed.\033[0m")
 
