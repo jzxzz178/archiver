@@ -14,20 +14,16 @@
 - Работает с заданным алфавитом
 - Часто используется в комбинации с BWT
 
-## Структура проекта
+Архиватор поддерживает два режима работы: сжатие и распаковка файлов.
 
+#### Сжатие файла:
+```bash
+python main.py compress input.txt compressed.arch
 ```
-.
-├── compressor/
-│   ├── __init__.py
-│   ├── bwt.py
-│   └── mtf.py
-├── tests/
-│   ├── __init__.py
-│   ├── tests.py
-│   └── tests_pipeline.py
-└── text_analizer/
-    └── analyze_charset.py
+
+#### Распаковка файла:
+```bash
+python main.py decompress compressed.arch output.txt
 ```
 
 ## Использование

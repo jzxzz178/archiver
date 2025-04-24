@@ -1,12 +1,15 @@
 import argparse
-from decimal import Decimal
 import json
+import base64
 from pathlib import Path
-from compressor.ari import ArithmeticCoder
+from typing import List
+
 from compressor.bwt import bwt_encode, bwt_decode
 from compressor.mtf import mtf_encode, mtf_decode
 from compressor.zle import zle_encode, zle_decode
+from compressor.ari import arithmetic_encode, arithmetic_decode
 
+# === Конвейер: BWT → MTF → ZLE → ARI ===
 BLOCK_SIZE = 4096
 ALPHABET = list("!#()*,-.0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz \n\0")
 ZLE_MARKER = len(ALPHABET)
@@ -20,13 +23,12 @@ def compress_file(input_path: str, output_path: str):
         bwt_out, bwt_index = bwt_encode(block)
         mtf_out = mtf_encode(bwt_out, ALPHABET)
         zle_out = zle_encode(mtf_out, marker=ZLE_MARKER)
-        coder = ArithmeticCoder(zle_out)
-        code = str(coder.encode())
+        code_bytes = arithmetic_encode(zle_out)
+        code_b64 = base64.b64encode(code_bytes).decode('ascii')
         blocks.append({
-            "code": code,
+            "code": code_b64,
             "length": len(zle_out),
-            "bwt_index": bwt_index,
-            "freq": dict(coder.freq)
+            "bwt_index": bwt_index
         })
 
     result = {
@@ -34,33 +36,22 @@ def compress_file(input_path: str, output_path: str):
         "marker": ZLE_MARKER,
         "blocks": blocks
     }
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(result, f)
+    Path(output_path).write_text(json.dumps(result), encoding="utf-8")
     print(f"✅ Сжатие завершено. Результат сохранён в {output_path}")
 
 
 def decompress_file(input_path: str, output_path: str):
-    with open(input_path, "r", encoding="utf-8") as f:
-        archive = json.load(f)
-
+    archive = json.loads(Path(input_path).read_text(encoding="utf-8"))
     alphabet = [chr(c) for c in archive["alphabet"]]
     marker = archive["marker"]
     text_out = []
 
     for block in archive["blocks"]:
-        code = Decimal(block["code"])
+        code_bytes = base64.b64decode(block["code"])
         length = block["length"]
         bwt_index = block["bwt_index"]
-        freq = {int(k): v for k, v in block["freq"].items()}
 
-        coder = ArithmeticCoder([])
-        coder.freq = freq
-        coder.total = sum(freq.values())
-        coder.symbols = sorted(freq.keys())
-        coder.cumulative = coder._build_cumulative()
-
-        zle_out = coder.decode(code, length)
+        zle_out = arithmetic_decode(code_bytes, length)
         mtf_decoded = mtf_decode(zle_decode(zle_out, marker=marker), alphabet)
         text_out.append(bwt_decode(mtf_decoded, bwt_index))
 
@@ -77,7 +68,7 @@ def main():
 
     if args.mode == "compress":
         compress_file(args.input, args.output)
-    elif args.mode == "decompress":
+    else:
         decompress_file(args.input, args.output)
 
 
