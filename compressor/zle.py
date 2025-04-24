@@ -1,5 +1,5 @@
 
-def zle_encode(data: list[int], marker: int) -> list[int]:
+def zle_encode(data: list[int], marker: int = 256) -> list[int]:
     output = []
     i = 0
     while i < len(data):
@@ -15,7 +15,7 @@ def zle_encode(data: list[int], marker: int) -> list[int]:
     return output
 
 
-def zle_decode(data: list[int], marker: int) -> list[int]:
+def zle_decode(data: list[int], marker: int = 256) -> list[int]:
     output = []
     i = 0
     while i < len(data):

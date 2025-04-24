@@ -1,4 +1,5 @@
 import argparse
+from decimal import Decimal
 import json
 from pathlib import Path
 from compressor.ari import ArithmeticCoder
@@ -48,7 +49,7 @@ def decompress_file(input_path: str, output_path: str):
     text_out = []
 
     for block in archive["blocks"]:
-        code = block["code"]
+        code = Decimal(block["code"])
         length = block["length"]
         bwt_index = block["bwt_index"]
         freq = {int(k): v for k, v in block["freq"].items()}

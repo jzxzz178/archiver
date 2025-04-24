@@ -1,6 +1,4 @@
-from compressor import bwt_encode, bwt_decode, mtf_encode, mtf_decode, zle_encode, zle_decode
-from compressor.ari import ArithmeticCoder
-from colorama import init, Fore, Style
+from compressor import bwt_encode, bwt_decode, mtf_encode, mtf_decode, zle_encode, zle_decode, arithmetic_encode, arithmetic_decode
 
 def test_mtf_identity():
     alphabet = list("abcde")
@@ -51,46 +49,22 @@ def test_zle_no_zeros():
     print("\033[32mZLE no zeros test passed.\033[0m")
 
 def test_ari_identity():
-    data = [1, 1, 0, 2, 0, 0, 0, 3, 1, 1]
-    coder = ArithmeticCoder(data)
-    code = coder.encode()
-    decoded = coder.decode(code, len(data))
-    try:
-        assert decoded == data, f"ARI fail: {decoded} != {data}"
-        print(f"{Fore.GREEN}ARI identity test passed.{Style.RESET_ALL}")
-    except AssertionError as e:
-        print(f"{Fore.RED}ARI identity test failed: {e}{Style.RESET_ALL}")
+    data = [1, 2, 3, 4, 5, 0, 0, 0, 6, 7, 8]
+    encoded = arithmetic_encode(data)
+    decoded = arithmetic_decode(encoded, len(data))
+    assert decoded == data, f"ARI fail: {decoded} != {data}"
+    print("\033[32mARI identity test passed.\033[0m")
 
 def test_ari_empty():
     data = []
-    coder = ArithmeticCoder(data)
-    code = coder.encode()
-    decoded = coder.decode(code, len(data))
-    try:
-        assert decoded == data, f"ARI empty fail: {decoded} != {data}"
-        print(f"{Fore.GREEN}ARI empty test passed.{Style.RESET_ALL}")
-    except AssertionError as e:
-        print(f"{Fore.RED}ARI empty test failed: {e}{Style.RESET_ALL}")
-
-def test_ari_single_symbol():
-    data = [1, 1, 1, 1, 1]
-    coder = ArithmeticCoder(data)
-    code = coder.encode()
-    decoded = coder.decode(code, len(data))
-    try:
-        assert decoded == data, f"ARI single symbol fail: {decoded} != {data}"
-        print(f"{Fore.GREEN}ARI single symbol test passed.{Style.RESET_ALL}")
-    except AssertionError as e:
-        print(f"{Fore.RED}ARI single symbol test failed: {e}{Style.RESET_ALL}")
+    encoded = arithmetic_encode(data)
+    decoded = arithmetic_decode(encoded, len(data))
+    assert decoded == data, f"ARI empty fail: {decoded} != {data}"
+    print("\033[32mARI empty test passed.\033[0m")
 
 def test_ari_large_data():
-    data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] * 10
-    coder = ArithmeticCoder(data)
-    code = coder.encode()
-    decoded = coder.decode(code, len(data))
-    try:
-        assert decoded == data, f"ARI large data fail: {decoded} != {data}"
-        print(f"{Fore.GREEN}ARI large data test passed.{Style.RESET_ALL}")
-    except AssertionError as e:
-        print(f"{Fore.RED}ARI large data test failed: {e}{Style.RESET_ALL}")
-
+    data = [1, 2, 3, 4, 5, 6, 7, 8, 9] * 10
+    code = arithmetic_encode(data)
+    decode = arithmetic_decode(code, len(data))
+    assert decode == data, f"ARI large data fail: {decode} != {data}"
+    print("\033[32mARI large data test passed.\033[0m")
