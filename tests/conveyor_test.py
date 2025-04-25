@@ -3,7 +3,6 @@ from compressor.bwt import bwt_encode, bwt_decode
 from compressor.mtf import mtf_encode, mtf_decode
 from compressor.zle import zle_encode, zle_decode
 from compressor.ari import arithmetic_encode, arithmetic_decode
-import time
 
 
 def test_full_pipeline():
@@ -14,8 +13,8 @@ def test_full_pipeline():
     # alphabet = ''.join(alphabet)
     zle_marker = len(alphabet)
 
-    print(f'alphabet: {alphabet}')
-    print(f'zle_marker: {zle_marker}')
+    # print(f'alphabet: {alphabet}')
+    # print(f'zle_marker: {zle_marker}')
 
     # Прямое преобразование
     bwt_out, bwt_index = bwt_encode(text)

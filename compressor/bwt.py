@@ -7,10 +7,30 @@ def bwt_encode(text: str) -> tuple[str, int]:
     return last_column, original_index
 
 
-def bwt_decode(bwt: str, index: int) -> str:
-    n = len(bwt)
-    table = [''] * n
+def bwt_decode(bwt: str, original_index: int) -> str:
+    n = len(bwt)    
+
+    # 1) Подсчёт Occ и total_count
+    total_count = {}
+    occ = [0] * n
+    for i, ch in enumerate(bwt):
+        occ[i] = total_count.get(ch, 0)
+        total_count[ch] = occ[i] + 1
+
+    # 2) Кумаулятивные C[c]
+    C = {}
+    cum = 0
+    for ch in sorted(total_count):
+        C[ch] = cum
+        cum += total_count[ch]
+
+    # 3) Восстановление через LF-mapping
+    res = []
+    ptr = original_index
     for _ in range(n):
-        table = sorted(bwt[i] + table[i] for i in range(n))
-    result = table[index]
-    return result.rstrip('\0')
+        ch = bwt[ptr]
+        res.append(ch)
+        ptr = C[ch] + occ[ptr]
+
+    # 4) Собираем строку и убираем делимитер '\0'
+    return ''.join(reversed(res)).rstrip('\0')

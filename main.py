@@ -2,6 +2,7 @@ import argparse
 import json
 import base64
 from pathlib import Path
+import time
 from typing import List
 
 from compressor.bwt import bwt_encode, bwt_decode
@@ -13,6 +14,7 @@ BLOCK_SIZE = 4096
 def get_alphabet_from_text(text: str) -> List[str]:
     unique_chars = sorted(set(text))
     unique_chars.append('\0')
+    # print(f"\033[32mАлфавит: {len(unique_chars)} символов\033[0m")
     return unique_chars
 
 
@@ -40,7 +42,7 @@ def compress_file(input_path: str, output_path: str):
         "blocks": blocks
     }
     Path(output_path).write_text(json.dumps(result), encoding="utf-8")
-    print(f"✅ Сжатие завершено. Результат сохранён в {output_path}")
+    print(f"\033[32mСжатие завершено. Результат сохранён в {output_path}\033[0m")
 
 
 def decompress_file(input_path: str, output_path: str):
@@ -50,16 +52,30 @@ def decompress_file(input_path: str, output_path: str):
     text_out = []
 
     for block in archive["blocks"]:
+        start = time.time()
         code_bytes = base64.b64decode(block["code"])
         length = block["length"]
         bwt_index = block["bwt_index"]
 
+        t1 = time.time()
         zle_out = arithmetic_decode(code_bytes, length)
-        mtf_decoded = mtf_decode(zle_decode(zle_out, marker=zle_marker), alphabet)
+        print(f"\033[34mАрифметическое декодирование: {time.time() - t1:.3f} сек.\033[0m")
+
+        t2 = time.time()
+        zle_decoded = zle_decode(zle_out, marker=zle_marker)
+        print(f"\033[34mZLE декодирование: {time.time() - t2:.3f} сек.\033[0m")
+
+        t3 = time.time()
+        mtf_decoded = mtf_decode(zle_decoded, alphabet)
+        print(f"\033[34mMTF декодирование: {time.time() - t3:.3f} сек.\033[0m")
+
+        t4 = time.time()
         text_out.append(bwt_decode(mtf_decoded, bwt_index))
+        print(f"\033[34mBWT декодирование: {time.time() - t4:.3f} сек.\033[0m")
+        print(f"\033[32mОбщее время декодирования блока: {time.time() - start:.3f} сек.\033[0m")
 
     Path(output_path).write_text("".join(text_out), encoding="utf-8")
-    print(f"✅ Декодирование завершено. Восстановленный текст записан в {output_path}")
+    print(f"\033[32mДекодирование завершено. Восстановленный текст записан в {output_path}\033[0m")
 
 
 def main():
@@ -69,10 +85,13 @@ def main():
     parser.add_argument("output", help="Путь к выходному файлу")
     args = parser.parse_args()
 
+    start_time = time.time()
     if args.mode == "compress":
         compress_file(args.input, args.output)
     else:
         decompress_file(args.input, args.output)
+    end_time = time.time()
+    print(f"\033[34m Время выполнения: {end_time - start_time:.2f} сек.\033[0m")
 
 
 if __name__ == "__main__":
