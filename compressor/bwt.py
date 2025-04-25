@@ -27,7 +27,7 @@ def bwt_encode(text: str) -> tuple[str, int]:
     orig_idx = None
     for pos in sa:
         if pos == 0:
-            last.append(s[-1])    # суффикс, начинающийся в 0, получает последний символ
+            last.append(s[-1])  # суффикс, начинающийся в 0, получает последний символ
             orig_idx = len(last)-1
         else:
             last.append(s[pos-1])
@@ -37,21 +37,18 @@ def bwt_encode(text: str) -> tuple[str, int]:
 def bwt_decode(bwt: str, original_index: int) -> str:
     n = len(bwt)    
 
-    # 1) Подсчёт Occ и total_count
     total_count = {}
     occ = [0] * n
     for i, ch in enumerate(bwt):
         occ[i] = total_count.get(ch, 0)
         total_count[ch] = occ[i] + 1
 
-    # 2) Кумаулятивные C[c]
     C = {}
     cum = 0
     for ch in sorted(total_count):
         C[ch] = cum
         cum += total_count[ch]
 
-    # 3) Восстановление через LF-mapping
     res = []
     ptr = original_index
     for _ in range(n):
@@ -59,5 +56,4 @@ def bwt_decode(bwt: str, original_index: int) -> str:
         res.append(ch)
         ptr = C[ch] + occ[ptr]
 
-    # 4) Собираем строку и убираем делимитер '\0'
     return ''.join(reversed(res)).rstrip('\0')
