@@ -1,6 +1,6 @@
 from typing import List
-
-# === Арифметическое кодирование с динамическим алфавитом ===
+from fractions import Fraction
+import bisect
 
 def arithmetic_encode(data: List[int]) -> bytes:
     """
@@ -46,13 +46,15 @@ def arithmetic_encode(data: List[int]) -> bytes:
         while True:
             if high < Half:
                 output_bit(0)
-                for _ in range(underflow): output_bit(1)
+                for _ in range(underflow):
+                    output_bit(1)
                 underflow = 0
                 low  <<= 1
                 high = (high << 1) | 1
             elif low >= Half:
                 output_bit(1)
-                for _ in range(underflow): output_bit(0)
+                for _ in range(underflow):
+                    output_bit(0)
                 underflow = 0
                 low  = (low - Half) << 1
                 high = ((high - Half) << 1) | 1
@@ -67,14 +69,16 @@ def arithmetic_encode(data: List[int]) -> bytes:
     underflow += 1
     if low < Quarter:
         output_bit(0)
-        for _ in range(underflow): output_bit(1)
+        for _ in range(underflow):
+            output_bit(1)
     else:
         output_bit(1)
-        for _ in range(underflow): output_bit(0)
+        for _ in range(underflow):
+            output_bit(0)
 
     # 7. Сериализация: symbols, freq, bit_len и биты
     out = bytearray()
-    # a) Сохраняем symbols (каждый как 4-байтное целое)
+    # a) Сохраняем symbols
     out += len(symbols).to_bytes(4, 'big')
     for s in symbols:
         out += int(s).to_bytes(4, 'big', signed=True)
@@ -125,12 +129,29 @@ def arithmetic_decode(encoded: bytes, length: int) -> List[int]:
     # 4. Длина битового потока
     bit_len = int.from_bytes(encoded[offset:offset+4], 'big')
     offset += 4
-    # 5. Извлекаем биты
-    bits = []
-    for b in encoded[offset:]:
-        for i in range(8):
-            bits.append((b >> (7-i)) & 1)
-    bits = bits[:bit_len]
+
+    # Подготовка чтения битов на ходу
+    data_bytes = encoded[offset:]
+    byte_pos = 0
+    bit_offset = 0
+    bit_count = 0  # сколько уже прочитано бит
+    def read_bit() -> int:
+        nonlocal byte_pos, bit_offset, bit_count
+        # Если превысили заявленную длину битового потока, возвращаем 0
+        if bit_count >= bit_len:
+            bit_count += 1
+            return 0
+        # Читаем бит из потока, если есть данные, иначе 0
+        if byte_pos < len(data_bytes):
+            b = (data_bytes[byte_pos] >> (7 - bit_offset)) & 1
+        else:
+            b = 0
+        bit_offset += 1
+        bit_count += 1
+        if bit_offset == 8:
+            bit_offset = 0
+            byte_pos += 1
+        return b
 
     # Параметры (32 бита)
     CodeValueBits = 32
@@ -138,22 +159,20 @@ def arithmetic_decode(encoded: bytes, length: int) -> List[int]:
     Half = 1 << (CodeValueBits - 1)
     Quarter = Half >> 1
 
-    # 6. Инициализация code_value
+    # 5. Инициализация code_value
     code_value = 0
-    bit_pos = 0
     for _ in range(CodeValueBits):
-        code_value = (code_value << 1) | (bits[bit_pos] if bit_pos < bit_len else 0)
-        bit_pos += 1
+        code_value = (code_value << 1) | read_bit()
 
     low, high = 0, MAX_RANGE
     result: List[int] = []
 
-    # 7. Основной цикл декодирования
+    # 6. Основной цикл декодирования
     for _ in range(length):
         range_width = high - low + 1
         value = ((code_value - low + 1) * total - 1) // range_width
-        # поиск индекса j
-        j = next(i for i in range(len(freq)) if cdf[i] <= value < cdf[i+1])
+        # бинарный поиск индекса j
+        j = bisect.bisect_right(cdf, value) - 1
         result.append(symbols[j])
         # уточнение интервала
         high = low + (range_width * cdf[j+1] // total) - 1
@@ -174,8 +193,6 @@ def arithmetic_decode(encoded: bytes, length: int) -> List[int]:
                 break
             low  <<= 1
             high = (high << 1) | 1
-            next_bit = bits[bit_pos] if bit_pos < bit_len else 0
-            code_value = (code_value << 1) | next_bit
-            bit_pos += 1
+            code_value = (code_value << 1) | read_bit()
 
     return result
