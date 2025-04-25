@@ -1,6 +1,7 @@
 import argparse
 import json
 import base64
+import os
 from pathlib import Path
 import time
 from typing import List
@@ -10,7 +11,8 @@ from compressor.mtf import mtf_encode, mtf_decode
 from compressor.zle import zle_encode, zle_decode
 from compressor.ari import arithmetic_encode, arithmetic_decode
 
-BLOCK_SIZE = 1024 * 512
+BLOCK_SIZE = 1024 * 1024 # 1MB
+
 def get_alphabet_from_text(text: str) -> List[str]:
     unique_chars = sorted(set(text))
     unique_chars.append('\0')
@@ -66,7 +68,9 @@ def compress_file(input_path: str, output_path: str, block_size: int = BLOCK_SIZ
         "blocks": blocks
     }
     Path(output_path).write_text(json.dumps(result), encoding="utf-8")
+    compressed_size = os.path.getsize(output_path) >> 10
     print(f"\033[32mСжатие завершено. Результат сохранён в {output_path}\033[0m")
+    print(f"\033[33mРазмер сжатого файла: {compressed_size} KB\033[0m")
 
 
 def decompress_file(input_path: str, output_path: str):
@@ -123,7 +127,7 @@ def main():
     else:
         decompress_file(args.input, args.output)
     end_time = time.time()
-    print(f"\033[34m Время выполнения: {end_time - start_time:.2f} сек.\033[0m")
+    print(f"\033[34mВремя выполнения: {end_time - start_time:.2f} сек.\033[0m")
 
 
 if __name__ == "__main__":
