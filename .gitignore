@@ -38,6 +38,7 @@ ENV/
 *.txt
 !Crime and Punishment by Fyodor Dostoyevsky 2.txt
 !test.txt
+!analysis_results.txt
 *.json
 !requirements.txt
 *.log

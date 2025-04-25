@@ -18,7 +18,7 @@ def get_alphabet_from_text(text: str) -> List[str]:
     return unique_chars
 
 
-def compress_file(input_path: str, output_path: str):
+def compress_file(input_path: str, output_path: str, block_size: int = BLOCK_SIZE):
     text = Path(input_path).read_text(encoding="utf-8")
     alphabet = get_alphabet_from_text(text)
     zle_marker = len(alphabet)
@@ -29,8 +29,8 @@ def compress_file(input_path: str, output_path: str):
     zle_times = []
     ari_times = []
     
-    for i in range(0, len(text), BLOCK_SIZE):
-        block = text[i:i + BLOCK_SIZE]
+    for i in range(0, len(text), block_size):
+        block = text[i:i + block_size]
         
         t1 = time.time()
         bwt_out, bwt_index = bwt_encode(block)
