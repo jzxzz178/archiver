@@ -10,11 +10,11 @@ from compressor.mtf import mtf_encode, mtf_decode
 from compressor.zle import zle_encode, zle_decode
 from compressor.ari import arithmetic_encode, arithmetic_decode
 
-BLOCK_SIZE = 4096 * 8
+BLOCK_SIZE = 1024 * 512
 def get_alphabet_from_text(text: str) -> List[str]:
     unique_chars = sorted(set(text))
     unique_chars.append('\0')
-    # print(f"\033[32mАлфавит: {len(unique_chars)} символов\033[0m")
+    # print(f"алфавит: {len(unique_chars)} символов")
     return unique_chars
 
 
