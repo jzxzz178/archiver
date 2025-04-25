@@ -14,7 +14,9 @@
 #### Сжатие файла:
 ```bash
 python main.py compress input.txt compressed.arch
-# пример
+```
+Сжать содержащийся в проекте текст:
+```bash
 python main.py compress '.\text_analyzer\Crime and Punishment by Fyodor Dostoyevsky 2.txt' compressed.json
 ```
 
