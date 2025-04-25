@@ -37,6 +37,7 @@ ENV/
 # Project specific
 *.txt
 !Crime and Punishment by Fyodor Dostoyevsky 2.txt
+!test.txt
 *.json
 !requirements.txt
 *.log
