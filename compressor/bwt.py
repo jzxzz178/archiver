@@ -1,10 +1,37 @@
+def build_suffix_array(s: str) -> list[int]:
+    n = len(s)
+    rank = [ord(c) for c in s]
+    sa   = list(range(n))
+    tmp  = [0]*n
+    k = 1
+
+    while True:
+        sa.sort(key=lambda i: (rank[i], rank[i+k] if i+k<n else -1))
+        tmp[sa[0]] = 0
+        for j in range(1, n):
+            prev, cur = sa[j-1], sa[j]
+            prev_key = (rank[prev], rank[prev+k] if prev+k<n else -1)
+            cur_key  = (rank[cur],  rank[cur+k]  if cur+k<n  else -1)
+            tmp[cur] = tmp[prev] + (prev_key < cur_key)
+        rank, tmp = tmp, rank
+        if rank[sa[-1]] == n-1:
+            break
+        k <<= 1
+
+    return sa
+
 def bwt_encode(text: str) -> tuple[str, int]:
-    text += '\0'
-    rotations = [text[i:] + text[:i] for i in range(len(text))]
-    rotations_sorted = sorted(rotations)
-    last_column = ''.join(row[-1] for row in rotations_sorted)
-    original_index = rotations_sorted.index(text)
-    return last_column, original_index
+    s = text + '\0'
+    sa = build_suffix_array(s)
+    last = []
+    orig_idx = None
+    for pos in sa:
+        if pos == 0:
+            last.append(s[-1])    # суффикс, начинающийся в 0, получает последний символ
+            orig_idx = len(last)-1
+        else:
+            last.append(s[pos-1])
+    return ''.join(last), orig_idx
 
 
 def bwt_decode(bwt: str, original_index: int) -> str:

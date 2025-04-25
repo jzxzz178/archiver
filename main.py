@@ -10,7 +10,7 @@ from compressor.mtf import mtf_encode, mtf_decode
 from compressor.zle import zle_encode, zle_decode
 from compressor.ari import arithmetic_encode, arithmetic_decode
 
-BLOCK_SIZE = 4096
+BLOCK_SIZE = 4096 * 8
 def get_alphabet_from_text(text: str) -> List[str]:
     unique_chars = sorted(set(text))
     unique_chars.append('\0')
@@ -23,18 +23,42 @@ def compress_file(input_path: str, output_path: str):
     alphabet = get_alphabet_from_text(text)
     zle_marker = len(alphabet)
     blocks = []
+    
+    bwt_times = []
+    mtf_times = []
+    zle_times = []
+    ari_times = []
+    
     for i in range(0, len(text), BLOCK_SIZE):
         block = text[i:i + BLOCK_SIZE]
+        
+        t1 = time.time()
         bwt_out, bwt_index = bwt_encode(block)
+        bwt_times.append(time.time() - t1)
+        
+        t2 = time.time()
         mtf_out = mtf_encode(bwt_out, alphabet)
+        mtf_times.append(time.time() - t2)
+        
+        t3 = time.time()
         zle_out = zle_encode(mtf_out, marker=zle_marker)
+        zle_times.append(time.time() - t3)
+        
+        t4 = time.time()
         code_bytes = arithmetic_encode(zle_out)
+        ari_times.append(time.time() - t4)
+        
         code_b64 = base64.b64encode(code_bytes).decode('ascii')
         blocks.append({
             "code": code_b64,
             "length": len(zle_out),
             "bwt_index": bwt_index
         })
+
+    print(f"\033[34mСреднее время BWT кодирования: {sum(bwt_times)/len(bwt_times):.3f} сек.\033[0m")
+    print(f"\033[34mСреднее время MTF кодирования: {sum(mtf_times)/len(mtf_times):.3f} сек.\033[0m")
+    print(f"\033[34mСреднее время ZLE кодирования: {sum(zle_times)/len(zle_times):.3f} сек.\033[0m")
+    print(f"\033[34mСреднее время арифметического кодирования: {sum(ari_times)/len(ari_times):.3f} сек.\033[0m")
 
     result = {
         "alphabet": [ord(c) for c in alphabet],
@@ -51,28 +75,36 @@ def decompress_file(input_path: str, output_path: str):
     zle_marker = archive["marker"]
     text_out = []
 
+    ari_times = []
+    zle_times = []
+    mtf_times = []
+    bwt_times = []
+
     for block in archive["blocks"]:
-        start = time.time()
         code_bytes = base64.b64decode(block["code"])
         length = block["length"]
         bwt_index = block["bwt_index"]
 
         t1 = time.time()
         zle_out = arithmetic_decode(code_bytes, length)
-        print(f"\033[34mАрифметическое декодирование: {time.time() - t1:.3f} сек.\033[0m")
+        ari_times.append(time.time() - t1)
 
         t2 = time.time()
         zle_decoded = zle_decode(zle_out, marker=zle_marker)
-        print(f"\033[34mZLE декодирование: {time.time() - t2:.3f} сек.\033[0m")
+        zle_times.append(time.time() - t2)
 
         t3 = time.time()
         mtf_decoded = mtf_decode(zle_decoded, alphabet)
-        print(f"\033[34mMTF декодирование: {time.time() - t3:.3f} сек.\033[0m")
+        mtf_times.append(time.time() - t3)
 
         t4 = time.time()
         text_out.append(bwt_decode(mtf_decoded, bwt_index))
-        print(f"\033[34mBWT декодирование: {time.time() - t4:.3f} сек.\033[0m")
-        print(f"\033[32mОбщее время декодирования блока: {time.time() - start:.3f} сек.\033[0m")
+        bwt_times.append(time.time() - t4)
+
+    print(f"\033[34mСреднее время арифметического декодирования: {sum(ari_times)/len(ari_times):.3f} сек.\033[0m")
+    print(f"\033[34mСреднее время ZLE декодирования: {sum(zle_times)/len(zle_times):.3f} сек.\033[0m")
+    print(f"\033[34mСреднее время MTF декодирования: {sum(mtf_times)/len(mtf_times):.3f} сек.\033[0m")
+    print(f"\033[34mСреднее время BWT декодирования: {sum(bwt_times)/len(bwt_times):.3f} сек.\033[0m")
 
     Path(output_path).write_text("".join(text_out), encoding="utf-8")
     print(f"\033[32mДекодирование завершено. Восстановленный текст записан в {output_path}\033[0m")
