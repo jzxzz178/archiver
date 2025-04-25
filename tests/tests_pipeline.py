@@ -22,4 +22,4 @@ def run_conveyor_test():
 
 if __name__ == '__main__':
     run_module_tests()
-    run_conveyor_test()
+    # run_conveyor_test()

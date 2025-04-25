@@ -26,7 +26,7 @@ def compress_file(input_path: str, output_path: str):
         bwt_out, bwt_index = bwt_encode(block)
         mtf_out = mtf_encode(bwt_out, alphabet)
         zle_out = zle_encode(mtf_out, marker=zle_marker)
-        code_bytes = arithmetic_encode(zle_out, zle_marker)
+        code_bytes = arithmetic_encode(zle_out)
         code_b64 = base64.b64encode(code_bytes).decode('ascii')
         blocks.append({
             "code": code_b64,
@@ -54,7 +54,7 @@ def decompress_file(input_path: str, output_path: str):
         length = block["length"]
         bwt_index = block["bwt_index"]
 
-        zle_out = arithmetic_decode(code_bytes, length, zle_marker)
+        zle_out = arithmetic_decode(code_bytes, length)
         mtf_decoded = mtf_decode(zle_decode(zle_out, marker=zle_marker), alphabet)
         text_out.append(bwt_decode(mtf_decoded, bwt_index))
 

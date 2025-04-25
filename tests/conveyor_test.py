@@ -19,12 +19,12 @@ def test_full_pipeline():
     bwt_out, bwt_index = bwt_encode(text)
     mtf_out = mtf_encode(bwt_out, alphabet)
     zle_out = zle_encode(mtf_out, marker=zle_marker)
-    encoded = arithmetic_encode(zle_out, zle_marker)
+    encoded = arithmetic_encode(zle_out)
 
     print(f'encoded: {encoded}')
 
     # Обратное преобразование
-    decoded = arithmetic_decode(encoded, len(zle_out), zle_marker)
+    decoded = arithmetic_decode(encoded, len(zle_out))
     mtf_decoded = mtf_decode(zle_decode(decoded, marker=zle_marker), alphabet)
     text_out = bwt_decode(mtf_decoded, bwt_index)
 
